@@ -39,6 +39,42 @@
             gap: 0.5rem;
         }
 
+        .navbar-content {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-left: auto;
+        }
+
+        .navbar-text {
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .logout-form {
+            display: inline;
+            margin: 0;
+        }
+
+        .btn-logout {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-logout:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
+            text-decoration: none;
+        }
+
         .container-main {
             padding: 2rem 0;
         }
@@ -285,6 +321,79 @@
             margin-top: 0.5rem;
         }
 
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h2 {
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .login-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.active {
+            display: block;
+        }
+
+        .btn-logout {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-logout:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
+            text-decoration: none;
+        }
+
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -301,11 +410,62 @@
             .action-buttons {
                 flex-direction: column;
             }
+
+            .navbar-content {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: flex-end;
+            }
+
+            .navbar-text {
+                font-size: 0.85rem;
+            }
+
+            .login-card {
+                margin: 1rem;
+            }
         }
     </style>
 
 </head>
 <body>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="login-form active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h2>StaffFlow</h2>
+                    <p>Personnel Management System</p>
+                </div>
+                <form id="loginFormSubmit">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="loginUsername" class="form-control form-control-lg" 
+                               placeholder="Enter your username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="loginPassword" class="form-control form-control-lg" 
+                               placeholder="Enter your password" required>
+                    </div>
+                    <div id="loginError" class="alert alert-danger" style="display: none; margin-bottom: 1rem;"></div>
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <div class="mt-3 text-center">
+                        <small class="text-muted">Demo: username: <strong>admin</strong> | password: <strong>password</strong></small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until login) -->
+    <div id="mainContent" class="main-content">
 
     <!-- Navigation Bar -->
     <nav class="navbar navbar-custom">
@@ -313,8 +473,11 @@
             <span class="navbar-brand">
                 <i class="fas fa-users-cog"></i> StaffFlow
             </span>
-            <div class="ms-auto">
-                <span class="text-white">Manage Staff & Personnel Records</span>
+            <div class="navbar-content">
+                <span class="navbar-text">Welcome, <strong id="userNameDisplay">User</strong></span>
+                <button type="button" id="logoutBtn" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
             </div>
         </div>
     </nav>
@@ -413,6 +576,8 @@
 
     </div>
 
+    </div>
+
     <!-- Add/Edit Personnel Modal -->
     <div class="modal fade" id="addPersonnelModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -482,208 +647,259 @@
 
     <!-- Personnel Management Script -->
     <script>
-        // Initialize from localStorage
-        let personnel = JSON.parse(localStorage.getItem('personnel')) || [];
-        const addModal = new bootstrap.Modal(document.getElementById('addPersonnelModal'));
+        // Hardcoded credentials for demo (in production, use proper authentication)
+        const VALID_CREDENTIALS = {
+            username: 'admin',
+            password: 'password'
+        };
 
-        // Load personnel on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            displayPersonnel();
-            populateDepartmentFilter();
-            updateStats();
+        // Check if user is logged in on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                loginUser(currentUser);
+            }
         });
 
-        // Form submission
-        document.getElementById('personnelForm').addEventListener('submit', function(e) {
+        // Login form submission
+        document.getElementById('loginFormSubmit').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const id = document.getElementById('editingId').value;
-            const newRecord = {
-                id: id || Date.now(),
-                fullName: document.getElementById('fullName').value,
-                position: document.getElementById('position').value,
-                department: document.getElementById('department').value,
-                contact: document.getElementById('contact').value,
-                email: document.getElementById('email').value,
-                address: document.getElementById('address').value,
-                employeeId: document.getElementById('employeeId').value,
-                dateAdded: id ? (personnel.find(p => p.id == id)?.dateAdded || new Date().toLocaleDateString()) : new Date().toLocaleDateString()
-            };
-
-            if (id) {
-                personnel = personnel.map(p => p.id == id ? newRecord : p);
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (username === VALID_CREDENTIALS.username && password === VALID_CREDENTIALS.password) {
+                errorDiv.style.display = 'none';
+                localStorage.setItem('currentUser', username);
+                loginUser(username);
             } else {
-                personnel.push(newRecord);
+                errorDiv.textContent = 'Invalid username or password. Try admin/password';
+                errorDiv.style.display = 'block';
             }
+        });
 
-            localStorage.setItem('personnel', JSON.stringify(personnel));
+        // Login user function
+        function loginUser(username) {
+            document.getElementById('loginPage').classList.remove('active');
+            document.getElementById('mainContent').classList.add('active');
+            document.getElementById('userNameDisplay').textContent = username;
+            
+            // Initialize personnel data
+            initializePersonnelData();
+        }
+
+        // Logout function
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('currentUser');
+            document.getElementById('loginPage').classList.add('active');
+            document.getElementById('mainContent').classList.remove('active');
+            document.getElementById('loginFormSubmit').reset();
+            document.getElementById('loginError').style.display = 'none';
+        });
+
+        // Initialize Personnel Management
+        function initializePersonnelData() {
+            let personnel = JSON.parse(localStorage.getItem('personnel')) || [];
+            const addModal = new bootstrap.Modal(document.getElementById('addPersonnelModal'));
+
+            // Load personnel on page load
             displayPersonnel();
             populateDepartmentFilter();
             updateStats();
-            addModal.hide();
-            this.reset();
-            document.getElementById('editingId').value = '';
-        });
 
-        // Display personnel
-        function displayPersonnel() {
-            const table = document.getElementById('personnelTable');
-            const empty = document.getElementById('emptyState');
-            
-            if (personnel.length === 0) {
-                table.innerHTML = '<tr id="emptyState"><td colspan="8" class="empty-state"><div><i class="fas fa-inbox"></i><p>No personnel records found. Click "Add New Personnel" to get started.</p></div></td></tr>';
-                return;
-            }
+            // Form submission
+            document.getElementById('personnelForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const id = document.getElementById('editingId').value;
+                const newRecord = {
+                    id: id || Date.now(),
+                    fullName: document.getElementById('fullName').value,
+                    position: document.getElementById('position').value,
+                    department: document.getElementById('department').value,
+                    contact: document.getElementById('contact').value,
+                    email: document.getElementById('email').value,
+                    address: document.getElementById('address').value,
+                    employeeId: document.getElementById('employeeId').value,
+                    dateAdded: id ? (personnel.find(p => p.id == id)?.dateAdded || new Date().toLocaleDateString()) : new Date().toLocaleDateString()
+                };
 
-            let html = '';
-            personnel.forEach((person, index) => {
-                html += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td><strong>${person.fullName}</strong></td>
-                        <td>${person.position}</td>
-                        <td><span class="badge-department">${person.department}</span></td>
-                        <td>${person.contact}</td>
-                        <td><a href="mailto:${person.email}">${person.email}</a></td>
-                        <td><small>${person.address}</small></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn btn-warning btn-sm" onclick="editPersonnel(${person.id})">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="deletePersonnel(${person.id})">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-            table.innerHTML = html;
-        }
+                if (id) {
+                    personnel = personnel.map(p => p.id == id ? newRecord : p);
+                } else {
+                    personnel.push(newRecord);
+                }
 
-        // Edit personnel
-        function editPersonnel(id) {
-            const person = personnel.find(p => p.id == id);
-            if (!person) return;
-
-            document.getElementById('editingId').value = id;
-            document.getElementById('fullName').value = person.fullName;
-            document.getElementById('position').value = person.position;
-            document.getElementById('department').value = person.department;
-            document.getElementById('contact').value = person.contact;
-            document.getElementById('email').value = person.email;
-            document.getElementById('address').value = person.address;
-            document.getElementById('employeeId').value = person.employeeId || '';
-            
-            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit Personnel';
-            addModal.show();
-        }
-
-        // Delete personnel
-        function deletePersonnel(id) {
-            if (confirm('Are you sure you want to delete this personnel record?')) {
-                personnel = personnel.filter(p => p.id !== id);
                 localStorage.setItem('personnel', JSON.stringify(personnel));
                 displayPersonnel();
                 populateDepartmentFilter();
                 updateStats();
-            }
-        }
-
-        // Reset form for adding new
-        document.getElementById('addPersonnelModal').addEventListener('show.bs.modal', function() {
-            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add New Personnel';
-            document.getElementById('editingId').value = '';
-            document.getElementById('personnelForm').reset();
-        });
-
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function() {
-            const query = this.value.toLowerCase();
-            const filtered = personnel.filter(person => 
-                person.fullName.toLowerCase().includes(query) ||
-                person.email.toLowerCase().includes(query) ||
-                person.contact.includes(query) ||
-                person.department.toLowerCase().includes(query) ||
-                person.position.toLowerCase().includes(query)
-            );
-
-            displayFilteredPersonnel(filtered);
-            updateSearchCount(filtered.length);
-        });
-
-        // Department filter
-        document.getElementById('departmentFilter').addEventListener('change', function() {
-            const dept = this.value;
-            const filtered = dept ? personnel.filter(p => p.department === dept) : personnel;
-            displayFilteredPersonnel(filtered);
-        });
-
-        // Display filtered personnel
-        function displayFilteredPersonnel(filtered) {
-            const table = document.getElementById('personnelTable');
-            
-            if (filtered.length === 0) {
-                table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4"><i class="fas fa-search"></i> No records found</td></tr>';
-                return;
-            }
-
-            let html = '';
-            filtered.forEach((person, index) => {
-                html += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td><strong>${person.fullName}</strong></td>
-                        <td>${person.position}</td>
-                        <td><span class="badge-department">${person.department}</span></td>
-                        <td>${person.contact}</td>
-                        <td><a href="mailto:${person.email}">${person.email}</a></td>
-                        <td><small>${person.address}</small></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn btn-warning btn-sm" onclick="editPersonnel(${person.id})">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="deletePersonnel(${person.id})">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                addModal.hide();
+                this.reset();
+                document.getElementById('editingId').value = '';
             });
-            table.innerHTML = html;
-        }
 
-        // Populate department filter
-        function populateDepartmentFilter() {
-            const departments = [...new Set(personnel.map(p => p.department))].sort();
-            const select = document.getElementById('departmentFilter');
-            const currentValue = select.value;
-            
-            select.innerHTML = '<option value="">All Departments</option>';
-            departments.forEach(dept => {
-                const option = document.createElement('option');
-                option.value = dept;
-                option.textContent = dept;
-                select.appendChild(option);
+            // Display personnel
+            function displayPersonnel() {
+                const table = document.getElementById('personnelTable');
+                const empty = document.getElementById('emptyState');
+                
+                if (personnel.length === 0) {
+                    table.innerHTML = '<tr id="emptyState"><td colspan="8" class="empty-state"><div><i class="fas fa-inbox"></i><p>No personnel records found. Click "Add New Personnel" to get started.</p></div></td></tr>';
+                    return;
+                }
+
+                let html = '';
+                personnel.forEach((person, index) => {
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><strong>${person.fullName}</strong></td>
+                            <td>${person.position}</td>
+                            <td><span class="badge-department">${person.department}</span></td>
+                            <td>${person.contact}</td>
+                            <td><a href="mailto:${person.email}">${person.email}</a></td>
+                            <td><small>${person.address}</small></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-warning btn-sm" onclick="editPersonnel(${person.id})">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="deletePersonnel(${person.id})">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                table.innerHTML = html;
+            }
+
+            // Edit personnel
+            window.editPersonnel = function(id) {
+                const person = personnel.find(p => p.id == id);
+                if (!person) return;
+
+                document.getElementById('editingId').value = id;
+                document.getElementById('fullName').value = person.fullName;
+                document.getElementById('position').value = person.position;
+                document.getElementById('department').value = person.department;
+                document.getElementById('contact').value = person.contact;
+                document.getElementById('email').value = person.email;
+                document.getElementById('address').value = person.address;
+                document.getElementById('employeeId').value = person.employeeId || '';
+                
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit Personnel';
+                addModal.show();
+            };
+
+            // Delete personnel
+            window.deletePersonnel = function(id) {
+                if (confirm('Are you sure you want to delete this personnel record?')) {
+                    personnel = personnel.filter(p => p.id !== id);
+                    localStorage.setItem('personnel', JSON.stringify(personnel));
+                    displayPersonnel();
+                    populateDepartmentFilter();
+                    updateStats();
+                }
+            };
+
+            // Reset form for adding new
+            document.getElementById('addPersonnelModal').addEventListener('show.bs.modal', function() {
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add New Personnel';
+                document.getElementById('editingId').value = '';
+                document.getElementById('personnelForm').reset();
             });
-            
-            select.value = currentValue;
-        }
 
-        // Update statistics
-        function updateStats() {
-            document.getElementById('totalCount').textContent = personnel.length;
-            const uniqueDepts = new Set(personnel.map(p => p.department)).size;
-            document.getElementById('departmentCount').textContent = uniqueDepts;
-            document.getElementById('searchCount').textContent = personnel.length;
-        }
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const filtered = personnel.filter(person => 
+                    person.fullName.toLowerCase().includes(query) ||
+                    person.email.toLowerCase().includes(query) ||
+                    person.contact.includes(query) ||
+                    person.department.toLowerCase().includes(query) ||
+                    person.position.toLowerCase().includes(query)
+                );
 
-        // Update search count
-        function updateSearchCount(count) {
-            document.getElementById('searchCount').textContent = count;
+                displayFilteredPersonnel(filtered);
+                updateSearchCount(filtered.length);
+            });
+
+            // Department filter
+            document.getElementById('departmentFilter').addEventListener('change', function() {
+                const dept = this.value;
+                const filtered = dept ? personnel.filter(p => p.department === dept) : personnel;
+                displayFilteredPersonnel(filtered);
+            });
+
+            // Display filtered personnel
+            function displayFilteredPersonnel(filtered) {
+                const table = document.getElementById('personnelTable');
+                
+                if (filtered.length === 0) {
+                    table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4"><i class="fas fa-search"></i> No records found</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                filtered.forEach((person, index) => {
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><strong>${person.fullName}</strong></td>
+                            <td>${person.position}</td>
+                            <td><span class="badge-department">${person.department}</span></td>
+                            <td>${person.contact}</td>
+                            <td><a href="mailto:${person.email}">${person.email}</a></td>
+                            <td><small>${person.address}</small></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-warning btn-sm" onclick="editPersonnel(${person.id})">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="deletePersonnel(${person.id})">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                table.innerHTML = html;
+            }
+
+            // Populate department filter
+            function populateDepartmentFilter() {
+                const departments = [...new Set(personnel.map(p => p.department))].sort();
+                const select = document.getElementById('departmentFilter');
+                const currentValue = select.value;
+                
+                select.innerHTML = '<option value="">All Departments</option>';
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept;
+                    option.textContent = dept;
+                    select.appendChild(option);
+                });
+                
+                select.value = currentValue;
+            }
+
+            // Update statistics
+            function updateStats() {
+                document.getElementById('totalCount').textContent = personnel.length;
+                const uniqueDepts = new Set(personnel.map(p => p.department)).size;
+                document.getElementById('departmentCount').textContent = uniqueDepts;
+                document.getElementById('searchCount').textContent = personnel.length;
+            }
+
+            // Update search count
+            function updateSearchCount(count) {
+                document.getElementById('searchCount').textContent = count;
+            }
         }
     </script>
 
