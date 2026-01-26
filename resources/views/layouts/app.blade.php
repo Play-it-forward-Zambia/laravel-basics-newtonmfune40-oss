@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Personnel Management System')</title>
+    <title>@yield('title', 'StaffFlow')</title>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
@@ -146,7 +146,7 @@
     <!-- Footer -->
     <footer class="bg-dark text-white text-center py-4 mt-5">
         <div class="container">
-            <p>&copy; 2026 Personnel Management System. All rights reserved.</p>
+            <p>&copy; 2026 StaffFlow. All rights reserved.</p>
         </div>
     </footer>
 
