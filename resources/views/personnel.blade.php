@@ -3,13 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Personnel Management System</title>
-
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Laravel Welcome</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Figtree, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 { color: #667eea; font-size: 2.5rem; margin-bottom: 20px; font-weight: 700; }
+        p { color: #666; font-size: 1.1rem; margin-bottom: 30px; line-height: 1.6; }
+        .version { color: #999; font-size: 0.9rem; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Laravel</h1>
+        <p>You have successfully created a new Laravel project. This is a fresh, clean installation ready for development.</p>
+        <p>Start building by editing your views in the <code>resources/views</code> directory and controllers in the <code>app/Http/Controllers</code> directory.</p>
+        <div class="version">
+            <p>Laravel v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})</p>
+        </div>
+    </div>
+</body>
+</html>
 
     <!-- Custom Styles -->
     <style>
