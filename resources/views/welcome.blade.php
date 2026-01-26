@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personnel Management System</title>
+    <title>StaffFlow</title>
 
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -311,7 +311,7 @@
     <nav class="navbar navbar-custom">
         <div class="container-fluid">
             <span class="navbar-brand">
-                <i class="fas fa-users-cog"></i> Personnel Management System
+                <i class="fas fa-users-cog"></i> StaffFlow
             </span>
             <div class="ms-auto">
                 <span class="text-white">Manage Staff & Personnel Records</span>
