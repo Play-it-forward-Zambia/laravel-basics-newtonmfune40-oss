@@ -13,6 +13,10 @@ class PersonnelController extends Controller
     public function index()
     {
         $personnelData = Personnel::all();
+        // Check if request wants JSON (API call)
+        if (request()->wantsJson()) {
+            return response()->json($personnelData);
+        }
         return view('personnel', ['personnel' => $personnelData]);
     }
 

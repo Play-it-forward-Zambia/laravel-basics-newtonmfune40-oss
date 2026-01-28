@@ -8,6 +8,7 @@ Route::get('/', function () {
 });
 
 Route::get('/personnel', [PersonnelController::class, 'index'])->name('personnel.index');
+Route::get('/api/personnel', [PersonnelController::class, 'index'])->name('personnel.api');
 Route::post('/personnel', [PersonnelController::class, 'store'])->name('personnel.store');
 Route::put('/personnel/{personnel}', [PersonnelController::class, 'update'])->name('personnel.update');
 Route::delete('/personnel/{personnel}', [PersonnelController::class, 'destroy'])->name('personnel.destroy');

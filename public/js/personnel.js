@@ -1,17 +1,35 @@
 // Personnel Management System - JavaScript
 
-// Initialize from localStorage
-let personnel = JSON.parse(localStorage.getItem('personnel')) || [];
+// Initialize personnel array
+let personnel = [];
 let addModal;
 
 // Load personnel on page load
 document.addEventListener('DOMContentLoaded', function() {
     addModal = new bootstrap.Modal(document.getElementById('addPersonnelModal'));
-    displayPersonnel();
-    populateDepartmentFilter();
-    updateStats();
+    loadPersonnelFromDatabase();
     setupEventListeners();
 });
+
+// Load personnel from database
+function loadPersonnelFromDatabase() {
+    fetch('/api/personnel', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        personnel = data;
+        displayPersonnel();
+        populateDepartmentFilter();
+        updateStats();
+    })
+    .catch(error => {
+        console.error('Error loading personnel:', error);
+    });
+}
 
 // Setup all event listeners
 function setupEventListeners() {
@@ -33,8 +51,7 @@ function handleFormSubmit(e) {
     e.preventDefault();
     
     const id = document.getElementById('editingId').value;
-    const newRecord = {
-        id: id || Date.now(),
+    const formData = {
         fullName: document.getElementById('fullName').value,
         position: document.getElementById('position').value,
         department: document.getElementById('department').value,
@@ -42,55 +59,62 @@ function handleFormSubmit(e) {
         email: document.getElementById('email').value,
         address: document.getElementById('address').value,
         employeeId: document.getElementById('employeeId').value,
-        dateAdded: id ? (personnel.find(p => p.id == id)?.dateAdded || new Date().toLocaleDateString()) : new Date().toLocaleDateString()
     };
 
-    if (id) {
-        personnel = personnel.map(p => p.id == id ? newRecord : p);
-    } else {
-        personnel.push(newRecord);
-    }
-
-    localStorage.setItem('personnel', JSON.stringify(personnel));
-    
-    // Save to backend
-    saveToBackend(newRecord, id);
-    
-    displayPersonnel();
-    populateDepartmentFilter();
-    updateStats();
-    addModal.hide();
-    this.reset();
-    document.getElementById('editingId').value = '';
-}
-
-// Save to backend
-function saveToBackend(record, editingId) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-    
-    fetch('/personnel', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify({
-            fullName: record.fullName,
-            position: record.position,
-            department: record.department,
-            contact: record.contact,
-            email: record.email,
-            address: record.address,
-            employeeId: record.employeeId
+
+    if (id) {
+        // Update existing record
+        fetch(`/personnel/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify(formData)
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Personnel saved successfully');
-        }
-    })
-    .catch(error => console.error('Error:', error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadPersonnelFromDatabase();
+                addModal.hide();
+                document.getElementById('personnelForm').reset();
+                document.getElementById('editingId').value = '';
+                showSuccessAlert('Personnel record updated successfully!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorAlert('Error updating personnel record');
+        });
+    } else {
+        // Create new record
+        fetch('/personnel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadPersonnelFromDatabase();
+                addModal.hide();
+                document.getElementById('personnelForm').reset();
+                showSuccessAlert('Personnel record saved successfully!');
+            } else {
+                showErrorAlert(data.message || 'Error saving personnel record');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorAlert('Error saving personnel record');
+        });
+    }
 }
 
 // Display personnel
@@ -107,7 +131,7 @@ function displayPersonnel() {
         html += `
             <tr>
                 <td>${index + 1}</td>
-                <td><strong>${person.fullName}</strong></td>
+                <td><strong>${person.full_name}</strong></td>
                 <td>${person.position}</td>
                 <td><span class="badge-department">${person.department}</span></td>
                 <td>${person.contact}</td>
@@ -135,13 +159,13 @@ function editPersonnel(id) {
     if (!person) return;
 
     document.getElementById('editingId').value = id;
-    document.getElementById('fullName').value = person.fullName;
+    document.getElementById('fullName').value = person.full_name;
     document.getElementById('position').value = person.position;
     document.getElementById('department').value = person.department;
     document.getElementById('contact').value = person.contact;
     document.getElementById('email').value = person.email;
     document.getElementById('address').value = person.address;
-    document.getElementById('employeeId').value = person.employeeId || '';
+    document.getElementById('employeeId').value = person.employee_id || '';
     
     document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit Personnel';
     addModal.show();
@@ -150,11 +174,29 @@ function editPersonnel(id) {
 // Delete personnel
 function deletePersonnel(id) {
     if (confirm('Are you sure you want to delete this personnel record?')) {
-        personnel = personnel.filter(p => p.id !== id);
-        localStorage.setItem('personnel', JSON.stringify(personnel));
-        displayPersonnel();
-        populateDepartmentFilter();
-        updateStats();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        
+        fetch(`/personnel/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadPersonnelFromDatabase();
+                showSuccessAlert('Personnel record deleted successfully!');
+            } else {
+                showErrorAlert(data.message || 'Error deleting personnel record');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorAlert('Error deleting personnel record');
+        });
     }
 }
 
@@ -169,7 +211,7 @@ function resetModalForm() {
 function handleSearch(e) {
     const query = e.target.value.toLowerCase();
     const filtered = personnel.filter(person => 
-        person.fullName.toLowerCase().includes(query) ||
+        person.full_name.toLowerCase().includes(query) ||
         person.email.toLowerCase().includes(query) ||
         person.contact.includes(query) ||
         person.department.toLowerCase().includes(query) ||
@@ -201,7 +243,7 @@ function displayFilteredPersonnel(filtered) {
         html += `
             <tr>
                 <td>${index + 1}</td>
-                <td><strong>${person.fullName}</strong></td>
+                <td><strong>${person.full_name}</strong></td>
                 <td>${person.position}</td>
                 <td><span class="badge-department">${person.department}</span></td>
                 <td>${person.contact}</td>
@@ -251,4 +293,48 @@ function updateStats() {
 // Update search count
 function updateSearchCount(count) {
     document.getElementById('searchCount').textContent = count;
+}
+
+// Show success alert
+function showSuccessAlert(message) {
+    // Create and show a simple alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    alertDiv.style.position = 'fixed';
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.style.minWidth = '300px';
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+
+// Show error alert
+function showErrorAlert(message) {
+    // Create and show a simple alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    alertDiv.style.position = 'fixed';
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.style.minWidth = '300px';
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
 }
